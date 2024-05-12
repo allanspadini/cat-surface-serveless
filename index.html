@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Cat Surface</title>
+
+    <script type="module" crossorigin src="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.css" />
+
+
+
+</head>
+<body>
+
+    <gradio-lite theme="light">
+
+    <gradio-requirements>
+        pandas
+        plotly
+    </gradio-requirements>
+
+    
+        import gradio as gr
+        import pandas as pd
+        import plotly.graph_objects as go
+        
+
+        def load_csv(file,titulo,tipo_de_mapa,escala_de_cor,titulo_na_barra_de_cores):
+            df = pd.read_csv(file)
+            contour_dict = {
+                'x': df[df.columns[0]],
+                'y': df[df.columns[1]],
+                'z': df[df.columns[2]],
+                'connectgaps': True,
+                'colorscale': escala_de_cor,
+
+            }
+
+            if titulo_na_barra_de_cores:
+                contour_dict['colorbar'] = {"title": df.columns[2]}
+
+            match tipo_de_mapa:
+                case 'Contorno':
+                    contour_dict['contours'] = {"showlines": True}
+                    fig = go.Figure(data =go.Contour(**contour_dict))
+                case 'Calor':
+                      fig = go.Figure(data =go.Heatmap(**contour_dict))
+
+
+            fig.update_layout(
+                xaxis_title=df.columns[0],
+                yaxis_title=df.columns[1],
+                font=dict(
+                    family="Courier New, monospace",
+                    size=18,
+                    color="RebeccaPurple"
+                ),
+                title={
+                    'text':titulo,
+                    'xanchor': 'right',
+                    'x': 0.5,
+                    'yanchor': 'top'
+                }
+            
+                
+            )
+
+            return fig
+
+        iface = gr.Interface(
+            fn=load_csv,
+            inputs=[
+                'file',
+                'text',
+                gr.Dropdown(value='Contorno',choices=['Contorno','Calor']),
+                gr.Dropdown(value='Turbo',choices=['Turbo','Viridis','gray','Picnic','Earth','HSV']),
+                gr.Checkbox(value=True)
+            ],
+            outputs=gr.Plot(),submit_btn='Plotar',clear_btn='Limpar',allow_flagging='never',
+            title="ฅ^•⩊•^ฅ Cat Surface",
+            description='Faça o upload de um arquivo no formato CSV. Assegure-se de que a primeira coluna contenha as coordenadas X, a segunda as coordenadas Y, e a terceira, uma variável de interesse específica.'
+            
+        )
+        iface.launch()
+    
+
+    
+
+    </gradio-lite>
+    
+</body>
+</html>
